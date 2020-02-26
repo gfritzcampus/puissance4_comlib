@@ -3,24 +3,50 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define NUMBER_OF_LEDS_PER_RING 24
-#define MAX_ROW 7
-#define MAX_COL 7
+#ifdef TEST_HEADER
+#include TEST_HEADER
+#endif
 
-#define SIZE_OF_BUFFER (4 + NUMBER_OF_LEDS_PER_RING * 3)
+#ifndef NUMFER_OF_LEDS_PER_RING
+  #define NUMBER_OF_LEDS_PER_RING 24
+#endif
+
+#ifndef MAX_ROW
+  #define MAX_ROW 7
+#endif
+
+#ifndef MAX_COL
+  #define MAX_COL 7
+#endif
 
 #ifndef LC_OPEN
-#define LC_OPEN open
+  #define LC_OPEN open
 #endif
 
 #ifndef LC_WRITE
-#define LC_WRITE write
+  #define LC_WRITE write
 #endif
 
 #ifndef LC_CLOSE
-#define LC_CLOSE close
+  #define LC_CLOSE close
 #endif
 
+#ifndef LC_SERIAL_PATH
+  #define LC_SERIAL_PATH "/tmp/puissance4/serial/ttyS1"
+#endif
+
+#define SIZE_OF_BUFFER (4 + NUMBER_OF_LEDS_PER_RING * 3)
+
+/**
+ * @brief compute buffer to control led through serial link
+ *
+ * @param buffer Buffer to fill. Buffer must have enough memory: (4 + (nb leds per ring)*3) bytes
+ * @param row Row number of led to control [1..7]
+ * @param col Column number of led to control [1..7]
+ * @param red Red value of RGB code
+ * @param green Green value of RGB code
+ * @param blue Blue value of RGB code
+ */
 static void computeMessage(unsigned char * const buffer,
                            const unsigned int row, 
                            const unsigned int col, 
@@ -62,7 +88,7 @@ LedControlReturnCode setLedColor(const unsigned int row,
   if (fd == -1)
     return LCRC_ERROR_SERIAL_OPEN;
 
-  char buffer[SIZE_OF_BUFFER] = { 0 };
+  unsigned char buffer[SIZE_OF_BUFFER] = { 0 };
   computeMessage(buffer, finalRow, finalCol, red, green, blue);
 
   const ssize_t nbOfWrittenBytes = LC_WRITE(fd, buffer, SIZE_OF_BUFFER);

@@ -8,7 +8,7 @@ typedef enum {
   LCRC_ERROR_SERIAL_CLOSE, // Check simulator status - impossible to close serial link
   LCRC_ERROR_COL,          // COL must be between 1 and 7
   LCRC_ERROR_ROW,          // ROW must be between 1 and 7
-  LCRC_ERROR_RGB_VALUE,       // Value of red, green and blue must be less or equal to 255
+  LCRC_ERROR_RGB_VALUE,    // Value of red, green and blue must be less or equal to 255
 } LedControlReturnCode ;
 
 /**
