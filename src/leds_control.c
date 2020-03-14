@@ -1,6 +1,7 @@
 #include "leds_control.h"
 
 #include <fcntl.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #ifdef TEST_HEADER
@@ -8,7 +9,7 @@
 #endif
 
 #ifndef NUMFER_OF_LEDS_PER_RING
-  #define NUMBER_OF_LEDS_PER_RING 24
+  #define NUMBER_OF_LEDS_PER_RING 1
 #endif
 
 #ifndef MAX_ROW
@@ -35,7 +36,11 @@
   #define LC_SERIAL_PATH "/tmp/puissance4/serial/ttyS1"
 #endif
 
-#define SIZE_OF_BUFFER (4 + NUMBER_OF_LEDS_PER_RING * 3)
+#if NUMBER_OF_LEDS_PER_RING == 1
+  #define SIZE_OF_BUFFER (10)
+#else
+  #define SIZE_OF_BUFFER (4 + NUMBER_OF_LEDS_PER_RING * 3)
+#endif
 
 /**
  * @brief compute buffer to control led through serial link
@@ -57,12 +62,17 @@ static void computeMessage(unsigned char * const buffer,
   buffer[1] = '0' + row;
   buffer[2] = '0' + col;
 
+#if NUMBER_OF_LEDS_PER_RING == 1
+  snprintf((char *)&(buffer[3]), 3, "%02X", red);
+  snprintf((char *)&(buffer[5]), 3, "%02X", green);
+  snprintf((char *)&(buffer[7]), 3, "%02X", blue);
+#else
   for(size_t i = 0; i < NUMBER_OF_LEDS_PER_RING; ++i) {
     buffer[3+(i*3)] = red;
     buffer[4+(i*3)] = green;
     buffer[5+(i*3)] = blue;
   }
-
+#endif
   buffer[SIZE_OF_BUFFER - 1] = '\n';
 }
 

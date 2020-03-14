@@ -1,34 +1,143 @@
 #ifndef _LEDS_CONTROL
 #define _LEDS_CONTROL
 
-typedef enum {
-  LCRC_OK,
-  LCRC_ERROR_SERIAL_OPEN,  // Check simulator status - impossible to open serial link
-  LCRC_ERROR_SERIAL_WRITE, // Check simulator status - impossible to write on serial link
-  LCRC_ERROR_SERIAL_CLOSE, // Check simulator status - impossible to close serial link
-  LCRC_ERROR_COL,          // COL must be between 1 and 7
-  LCRC_ERROR_ROW,          // ROW must be between 1 and 7
-  LCRC_ERROR_RGB_VALUE,    // Value of red, green and blue must be less or equal to 255
-} LedControlReturnCode ;
+/**
+ * @brief Store serial context used to send command
+ */
+typedef void * SerialContext;
 
 /**
- * @brief Send command to a led
- *
- * To turn off led, set red, green, blue to 0
- * 
- * @param row Row number of led to control [1..7]
- * @param col Column number of led to control [1..7]
- * @param red Red value of RGB code
- * @param green Green value of RGB code
- * @param blue Blue value of RGB code
- *
- * @return LCRC_OK if everything works correctly, else LCRC_ERROR_* corresponding
- *         of error encounter
+ * @brief Store point of display matrix
  */
-LedControlReturnCode setLedColor(const unsigned int row, 
-                                 const unsigned int col, 
-                                 const unsigned int red, 
-                                 const unsigned int green, 
-                                 const unsigned int blue);
+typedef struct {
+  unsigned char line;   //!< Line identifying point
+  unsigned char column; //!< Column identifying point
+} MatrixPoint;
+
+/**
+ * @brief Store zone of display matrix
+ */
+typedef struct {
+  MatrixPoint startPoint; //!< Starting point of matrix (including)
+  MatrixPoint endPoint;   //!< Ending point of matrix (including)
+} MatrixZone;
+
+/**
+ * @brief Store a color, in RGB format
+ */
+typedef struct {
+  unsigned char red;   //!< Red value of RGB color, 0 to 255
+  unsigned char green; //!< Green value of RGB color, 0 to 255
+  unsigned char blue;  //!< Blue value of RGB color, 0 to 255
+} Color;
+
+/**
+ * @brief Black color
+ */
+static const Color BlackColor = { 
+  .red = 0, 
+  .green = 0, 
+  .blue = 0
+};
+
+/**
+ * @brief White color
+ */
+static const Color WhiteColor = { 
+  .red = 255, 
+  .green = 255, 
+  .blue = 255
+};
+
+/**
+ * @brief Red color
+ */
+static const Color Red = {
+  .red = 255, 
+  .green = 0, 
+  .blue = 0
+};
+
+/**
+ * @brief Green color
+ */
+static const Color Green = {
+  .red = 0, 
+  .green = 255, 
+  .blue = 0
+};
+
+/**
+ * @brief Blue color
+ */
+static const Color Blue = {
+  .red = 255, 
+  .green = 0, 
+  .blue = 0
+};
+
+/**
+ * @brief Yellow color
+ */
+static const Color Yellow = {
+  .red = 255, 
+  .green = 255, 
+  .blue = 0
+};
+
+/**
+ * @brief Set color of a display matrix zone
+ *
+ * @param context Serial to use to send command
+ * @param zone Display matrix zone affected by new color
+ * @param color New color
+ */ 
+void setZoneColor(const SerialContext context, const MatrixZone zone, const Color color);
+
+/**
+ * @brief Turn on display matrix zone, using color
+ *        previously set using setLineColor()
+ *
+ * @param context Serial to use to send command
+ * @param zone Display matrix zone to turn on
+ */
+void setZoneOn(const SerialContext context, const MatrixZone zone);
+
+/**
+ * @brief Turn off display matrix zone
+ *
+ * @param context Serial to use to send command
+ * @param zone Display matrix zone to turn off
+ */
+void setZoneOff(const SerialContext context, const MatrixZone zone);
+
+/**
+ * @brief Change led intensity of a zone
+ *
+ * @param context Serial to use to send command
+ * @param zone Display matrix zone affected by new led intensity
+ * @param intensity New led intensity, in pourcentage, from 0-100. If greater than 100%,
+ *                  intensity will be set to 100%
+ */
+void setZoneIntensity(const SerialContext context, const MatrixZone zone, const unsigned char intensity);
+
+/**
+ * @brief Change blink mode of a display matrix zone.
+ *
+ * @param context Serial to use to send command
+ * @param zone Display matrix zone affected by new blink mode
+ * @param onTime Time in millisecond during which leds will be on
+ * @param offTime Time in millisecond during which leds will be off
+ */
+void setZoneBlink(const SerialContext context, const MatrixZone zone, const unsigned short onTime, const unsigned short offTime);
+
+/**
+ * @brief Change color of a specific ring
+ *
+ * @param context Serial to use to send command
+ * @param ring Coordonates of ring
+ * @param color New color
+ */
+void setRingColor(const SerialContext context, const MatrixPoint ring, const Color color);
 
 #endif
