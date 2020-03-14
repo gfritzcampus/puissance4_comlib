@@ -16,7 +16,13 @@
     }\
   }
 
-inline static unsigned char toOneCharAscii(const unsigned char i) {
+/**
+ * @brief encode number between 0 and 15 in its hexadecimal representation
+ *
+ * @param i Number to encode
+ * @return [0-9A-F] if 0 < i < 16; X otherwise
+ */
+inline static unsigned char toHexaHalfByte(const unsigned char i) {
   if (i < 9) {
     return '0' + i;
   }
@@ -28,25 +34,49 @@ inline static unsigned char toOneCharAscii(const unsigned char i) {
   }
 }
 
+/**
+ * @brief encode byte in its hexadecimal representation
+ *
+ * @param buffer Buffer to store result, should be at least size 2
+ * @param byte Byte to encode
+ */
 inline static void encodeByte(unsigned char * const buffer, const unsigned char byte) {
-  buffer[0] = toOneCharAscii((byte >> 4) & 0x0F); 
-  buffer[1] = toOneCharAscii(byte & 0x0F);
+  buffer[0] = toHexaHalfByte((byte >> 4) & 0x0F); 
+  buffer[1] = toHexaHalfByte(byte & 0x0F);
 }
 
+/**
+ * @brief encode short in its hexadecimal representation
+ *
+ * @param buffer Buffer to store result, should be at least size 4
+ * @param value Short to encode
+ */
 inline static void encodeShort(unsigned char * const buffer, const unsigned short value) {
-  buffer[0] = toOneCharAscii((value >> 12) & 0x0F); 
-  buffer[1] = toOneCharAscii((value >> 8) & 0x0F); 
-  buffer[2] = toOneCharAscii((value >> 4) & 0x0F); 
-  buffer[3] = toOneCharAscii(value & 0x0F);
+  buffer[0] = toHexaHalfByte((value >> 12) & 0x0F); 
+  buffer[1] = toHexaHalfByte((value >> 8) & 0x0F); 
+  buffer[2] = toHexaHalfByte((value >> 4) & 0x0F); 
+  buffer[3] = toHexaHalfByte(value & 0x0F);
 }
 
+/**
+ * @brief encode matrix zone
+ *
+ * @param buffer Buffer to store result, should be at least size 4
+ * @param zone Coordonates of zone to encode
+ */
 inline static void encodeZone(unsigned char * const buffer, const P4MatrixZone zone) {
-  buffer[0] = toOneCharAscii(zone.startPoint.row);
-  buffer[1] = toOneCharAscii(zone.startPoint.column);
-  buffer[2] = toOneCharAscii(zone.endPoint.row);
-  buffer[3] = toOneCharAscii(zone.endPoint.column);
+  buffer[0] = toHexaHalfByte(zone.startPoint.row);
+  buffer[1] = toHexaHalfByte(zone.startPoint.column);
+  buffer[2] = toHexaHalfByte(zone.endPoint.row);
+  buffer[3] = toHexaHalfByte(zone.endPoint.column);
 }
 
+/**
+ * @brief encode color in its hexacimal representation
+ *
+ * @param buffer Buffer to store result, should be at least size 6
+ * @param color Colot to encode in its hexadecimal representation
+ */
 inline static void encodeColor(unsigned char * const buffer, const P4Color color) {
   encodeByte(&(buffer[0]), color.red);
   encodeByte(&(buffer[2]), color.green);

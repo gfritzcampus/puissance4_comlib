@@ -128,26 +128,26 @@ static const P4Color P4Yellow = {
  * @brief Player identifier
  */
 typedef enum {
-  P4P_PLAYER_1,
-  P4P_PLAYER_2
+  P4P_PLAYER_1 = '1',
+  P4P_PLAYER_2 = '2',
 } P4Player;
 
 /**
  * @brief Status of player action
  */
 typedef enum {
-  P4AS_PRESS,    //!< Player press action button
-  P4AS_RELEASE   //!< Player release action button
+  P4AS_DOWN= 'd',    //!< Player press action button
+  P4AS_UP = 'u'   //!< Player release action button
 } P4ActionStatus;
 
 /**
  * @brief Player's action
  */
 typedef enum {
-  P4A_LEFT,   //!< Left button
-  P4A_RIGHT,  //!< Right button
-  P4A_UP,     //!< Up button
-  P4A_DOWN    //!< Down button
+  P4A_LEFT = 'l',   //!< Left button
+  P4A_RIGHT = 'r',  //!< Right button
+  P4A_UP = 'u',     //!< Up button
+  P4A_DOWN = 'd'    //!< Down button
 } P4Action;
 
 /**
