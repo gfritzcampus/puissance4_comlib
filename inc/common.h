@@ -37,13 +37,6 @@
   #define P4_BOARD_NB_LEDS_PER_RING (1)
 #endif
 
-/**
- * @brief Store serial context used to send command
- */
-typedef struct 
-{
-  size_t (*send)(void * buffer, size_t size);
-} P4SerialContext;
 
 /**
  * @brief Store point of display matrix
@@ -156,8 +149,62 @@ typedef enum {
 typedef enum {
   P4RC_OK,                  //!< Everything has correctly run
   P4RC_INVALID_PARAMETERS,  //!< Parameters of functions are invalid
-  P4RC_SEND_ERROR           //!< Error sending command
+  P4RC_SEND_ERROR,          //!< Error sending command
+  P4RC_BUFFER_FULL,         //!< Buffer full
 } P4ReturnCode;
+
+//! Store an intensity
+typedef unsigned char P4Intensity;
+
+//! Store a delay in milliseconds
+typedef unsigned short P4DelayMs;
+
+//! @brief Callback function type to inform that player has do an action
+typedef void (*P4PlayerActionCallback)(P4Player, P4Action, P4ActionStatus);
+
+//! @brief Callback function type to inform zone changes a color
+typedef void (*P4ZoneColorCallback)(P4MatrixZone, P4Color);
+
+//! @brief Callback function type to inform zone is turn on
+typedef void (*P4ZoneOnCallback)(P4MatrixZone);
+
+//! @brief Callback function type to inform zone is turn off
+typedef void (*P4ZoneOffCallback)(P4MatrixZone);
+
+//! @brief Callback function type to inform zone changes intensity
+typedef void (*P4ZoneIntensityCallback)(P4MatrixZone, const P4Intensity);
+
+//! @brief Callback function type to inform zone blink
+typedef void (*P4ZoneBlinkCallback)(P4MatrixZone, const P4DelayMs, const P4DelayMs);
+
+/**
+ * @brief describe a ring buffer to accumulate data
+ */
+typedef struct {
+  char * data;                                          //!< Buffer to store received bytes before decode (minimal size : 256 bytes)
+  size_t size;                                          //!< Size of buffer in bytes
+  size_t head;                                          //!< Head of ring buffer, ie index of first empty cell
+  size_t tail;                                          //!< Tail of ring buffer, ie index of first available data
+  bool isFull;                                          //!< Store if ring buffer is full
+  bool inError;                                         //!< Store if ring buffer is in error
+} P4RingBuffer;
+
+/**
+ * @brief Store serial context used to send command
+ */
+typedef struct 
+{
+  size_t (*send)(void * buffer, size_t size);           //!< Function to send command
+
+  P4RingBuffer buffer;
+
+  P4PlayerActionCallback playerActionCallback;          //!< Callback to use when a player action is received
+  P4ZoneColorCallback zoneColorCallback;                //!< Callback to use when a color zone is received
+  P4ZoneOnCallback zoneOnCallback;                      //!< Callback to use when a zone on is received
+  P4ZoneOffCallback zoneOffCallback;                     //!< Callback to use when a zone off is received
+  P4ZoneIntensityCallback zoneIntensityCallback;        //!< Callback to use when a intensity zone is received
+  P4ZoneBlinkCallback zoneBlinkCallback;                //!< Callback to use when a zone blink is received
+} P4SerialContext;
 
 /**
  * @brief Check if is a valid matrix point : column should be between

@@ -126,7 +126,7 @@ P4ReturnCode p4SetZoneOff(const P4SerialContext context, const P4MatrixZone zone
   return sent == P4_CMD_ZONE_OFF_SIZE ? P4RC_OK : P4RC_SEND_ERROR;
 }
 
-P4ReturnCode p4SetZoneIntensity(const P4SerialContext context, const P4MatrixZone zone, const unsigned char intensity) {
+P4ReturnCode p4SetZoneIntensity(const P4SerialContext context, const P4MatrixZone zone, const P4Intensity intensity) {
   unsigned char buffer[P4_CMD_ZONE_INTENSITY_SIZE] = { 0 };
 
   CHECK_ZONE_VALIDITY;
@@ -141,7 +141,7 @@ P4ReturnCode p4SetZoneIntensity(const P4SerialContext context, const P4MatrixZon
   return sent == P4_CMD_ZONE_INTENSITY_SIZE ? P4RC_OK : P4RC_SEND_ERROR;
 }
 
-P4ReturnCode p4SetZoneBlink(const P4SerialContext context, const P4MatrixZone zone, const unsigned short onTime, const unsigned short offTime) {
+P4ReturnCode p4SetZoneBlink(const P4SerialContext context, const P4MatrixZone zone, const P4DelayMs onTime, const P4DelayMs offTime) {
   unsigned char buffer[P4_CMD_ZONE_BLINK_SIZE] = { 0 };
 
   CHECK_ZONE_VALIDITY;

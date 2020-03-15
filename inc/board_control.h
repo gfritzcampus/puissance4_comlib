@@ -49,7 +49,7 @@ P4ReturnCode p4SetZoneOff(const P4SerialContext context, const P4MatrixZone zone
  *         - P4RC_SEND_ERROR if error sending command
  *         - P4RC_OK otherwise
  */
-P4ReturnCode p4SetZoneIntensity(const P4SerialContext context, const P4MatrixZone zone, const unsigned char intensity);
+P4ReturnCode p4SetZoneIntensity(const P4SerialContext context, const P4MatrixZone zone, const P4Intensity intensity);
 
 /**
  * @brief Change blink mode of a display matrix zone.
@@ -62,7 +62,7 @@ P4ReturnCode p4SetZoneIntensity(const P4SerialContext context, const P4MatrixZon
  *         - P4RC_SEND_ERROR if error sending command
  *         - P4RC_OK otherwise
  */
-P4ReturnCode p4SetZoneBlink(const P4SerialContext context, const P4MatrixZone zone, const unsigned short onTime, const unsigned short offTime);
+P4ReturnCode p4SetZoneBlink(const P4SerialContext context, const P4MatrixZone zone, const P4DelayMs onTime, const P4DelayMs offTime);
 
 /**
  * @brief Change color of a specific ring
