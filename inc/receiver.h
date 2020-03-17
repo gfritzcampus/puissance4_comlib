@@ -12,7 +12,7 @@ typedef struct {
   //! Length of command
   size_t length;
   //! Function to decode command
-  void (*decoder)(const P4SerialContext * const);
+  void (*decoder)(P4SerialContext * const);
 } P4Command;
 
 /**

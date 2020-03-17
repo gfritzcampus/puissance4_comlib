@@ -24,7 +24,6 @@
 #define P4_CMD_PLAYER_SIZE (5)
 #define P4_CMD_PLAYER_CMD 'p'
 
-
 #ifndef P4_BOARD_NB_ROWS
   #define P4_BOARD_NB_ROWS (7)
 #endif
@@ -37,6 +36,11 @@
   #define P4_BOARD_NB_LEDS_PER_RING (1)
 #endif
 
+#define P4_CMD_RING_COLOR_SIZE (4 + 3 * 2 * P4_BOARD_NB_LEDS_PER_RING)
+#define P4_CMD_RING_COLOR_CMD 'r'
+
+#define P4_CMD_SHORT_RING_SIZE (10)
+#define P4_CMD_SHORT_RING_CMD 'R'
 
 /**
  * @brief Store point of display matrix
@@ -143,6 +147,9 @@ typedef enum {
   P4A_DOWN = 'd'    //!< Down button
 } P4Action;
 
+//! Value used when get an unknown value
+#define P4_UNKNOWN '\0'
+
 /**
  * @brief Return code of functions
  */
@@ -160,22 +167,28 @@ typedef unsigned char P4Intensity;
 typedef unsigned short P4DelayMs;
 
 //! @brief Callback function type to inform that player has do an action
-typedef void (*P4PlayerActionCallback)(P4Player, P4Action, P4ActionStatus);
+typedef void (*P4PlayerActionCallback)(void *, const P4Player, const P4Action, const P4ActionStatus);
 
 //! @brief Callback function type to inform zone changes a color
-typedef void (*P4ZoneColorCallback)(P4MatrixZone, P4Color);
+typedef void (*P4ZoneColorCallback)(void *, const P4MatrixZone, const P4Color);
 
 //! @brief Callback function type to inform zone is turn on
-typedef void (*P4ZoneOnCallback)(P4MatrixZone);
+typedef void (*P4ZoneOnCallback)(void *, const P4MatrixZone);
 
 //! @brief Callback function type to inform zone is turn off
-typedef void (*P4ZoneOffCallback)(P4MatrixZone);
+typedef void (*P4ZoneOffCallback)(void *, const P4MatrixZone);
 
 //! @brief Callback function type to inform zone changes intensity
-typedef void (*P4ZoneIntensityCallback)(P4MatrixZone, const P4Intensity);
+typedef void (*P4ZoneIntensityCallback)(void *, const P4MatrixZone, const P4Intensity);
 
 //! @brief Callback function type to inform zone blink
-typedef void (*P4ZoneBlinkCallback)(P4MatrixZone, const P4DelayMs, const P4DelayMs);
+typedef void (*P4ZoneBlinkCallback)(void *, const P4MatrixZone, const P4DelayMs, const P4DelayMs);
+
+//! @brief Callback function type to inform ring update
+typedef void (*P4RingColorCallback)(void *, const P4MatrixPoint, const size_t, const P4Color[]);
+
+//! @brief Callback function type to inform short ring update
+typedef void (*P4ShortRingColorCallback)(void *, const P4MatrixPoint, const P4Color);
 
 /**
  * @brief describe a ring buffer to accumulate data
@@ -201,9 +214,14 @@ typedef struct
   P4PlayerActionCallback playerActionCallback;          //!< Callback to use when a player action is received
   P4ZoneColorCallback zoneColorCallback;                //!< Callback to use when a color zone is received
   P4ZoneOnCallback zoneOnCallback;                      //!< Callback to use when a zone on is received
-  P4ZoneOffCallback zoneOffCallback;                     //!< Callback to use when a zone off is received
-  P4ZoneIntensityCallback zoneIntensityCallback;        //!< Callback to use when a intensity zone is received
+  P4ZoneOffCallback zoneOffCallback;                    //!< Callback to use when a zone off is received
+  P4ZoneIntensityCallback zoneIntensityCallback;        //!< Callback to use when an intensity zone is received
   P4ZoneBlinkCallback zoneBlinkCallback;                //!< Callback to use when a zone blink is received
+  P4RingColorCallback ringColorCallback;                //!< Callback to use when a ring is updated
+  P4ShortRingColorCallback shortRingColorCallback;      //!< Callback to use when a ring is updated using short command
+
+  void * cookie;                                        //!< Store pointer to user data, which will passed as first
+                                                        //!< argument of callbacks
 } P4SerialContext;
 
 /**

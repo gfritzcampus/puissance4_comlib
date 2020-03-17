@@ -83,6 +83,7 @@ inline static void decodeCommand(P4SerialContext * const context, const P4Comman
   while(current_cmd->code != '\0') {
     if (current_cmd->code == buffer->data[buffer->tail] &&
         current_cmd->length == (sizeBuffer(buffer) + 1)) {
+      p4PopReceivedData(context);
       current_cmd->decoder(context);
     }
   }
