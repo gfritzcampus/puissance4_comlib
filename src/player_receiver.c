@@ -67,7 +67,7 @@ static void decodePlayerCommand(P4SerialContext * const context) {
   P4ActionStatus status = decodeStatus(p4PopReceivedData(context));
   
   if (player != P4_UNKNOWN && action != P4_UNKNOWN && status != P4_UNKNOWN) {
-    context->playerActionCallback(player, action, status);
+    context->playerActionCallback(context->cookie, player, action, status);
   }
 }
 

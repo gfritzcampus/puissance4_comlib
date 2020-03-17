@@ -16,6 +16,12 @@
     }\
   }
 
+#define CHECK_POINT_VALIDITY(point) {\
+    if (!isValidMatrixPoint(point)) {\
+      return P4RC_INVALID_PARAMETERS;\
+    }\
+  }
+
 /**
  * @brief encode number between 0 and 15 in its hexadecimal representation
  *
@@ -59,16 +65,25 @@ inline static void encodeShort(unsigned char * const buffer, const unsigned shor
 }
 
 /**
+ * @brief encode matrix point
+ *
+ * @param buffer Buffer to store result, should be at least size 2
+ * @param point Coordonates of point to encode
+ */
+inline static void encodePoint(unsigned char * buffer, const P4MatrixPoint point) {
+  buffer[0] = toHexaHalfByte(point.row);
+  buffer[1] = toHexaHalfByte(point.column);
+}
+
+/**
  * @brief encode matrix zone
  *
  * @param buffer Buffer to store result, should be at least size 4
  * @param zone Coordonates of zone to encode
  */
 inline static void encodeZone(unsigned char * const buffer, const P4MatrixZone zone) {
-  buffer[0] = toHexaHalfByte(zone.startPoint.row);
-  buffer[1] = toHexaHalfByte(zone.startPoint.column);
-  buffer[2] = toHexaHalfByte(zone.endPoint.row);
-  buffer[3] = toHexaHalfByte(zone.endPoint.column);
+  encodePoint(&(buffer[0]), zone.startPoint);
+  encodePoint(&(buffer[2]), zone.endPoint);
 }
 
 /**
@@ -83,7 +98,7 @@ inline static void encodeColor(unsigned char * const buffer, const P4Color color
   encodeByte(&(buffer[4]), color.blue);
 }
 
-P4ReturnCode p4SetZoneColor(const P4SerialContext context, const P4MatrixZone zone, const P4Color color) {
+P4ReturnCode p4SetZoneColor(const P4SerialContext * const context, const P4MatrixZone zone, const P4Color color) {
   unsigned char buffer[P4_CMD_ZONE_COLOR_SIZE] = { 0 };
 
   CHECK_ZONE_VALIDITY;
@@ -93,12 +108,12 @@ P4ReturnCode p4SetZoneColor(const P4SerialContext context, const P4MatrixZone zo
   encodeColor(&(buffer[5]), color);
   buffer[11] = P4_CMD_DELIMITER;
 
-  size_t sent = context.send(buffer, P4_CMD_ZONE_COLOR_SIZE);
+  size_t sent = context->send(buffer, P4_CMD_ZONE_COLOR_SIZE);
 
   return sent == P4_CMD_ZONE_COLOR_SIZE ? P4RC_OK : P4RC_SEND_ERROR;
 }
 
-P4ReturnCode p4SetZoneOn(const P4SerialContext context, const P4MatrixZone zone) {
+P4ReturnCode p4SetZoneOn(const P4SerialContext * const context, const P4MatrixZone zone) {
   unsigned char buffer[P4_CMD_ZONE_ON_SIZE] = { 0 };
 
   CHECK_ZONE_VALIDITY;
@@ -107,12 +122,12 @@ P4ReturnCode p4SetZoneOn(const P4SerialContext context, const P4MatrixZone zone)
   encodeZone(&(buffer[1]), zone);
   buffer[5] = P4_CMD_DELIMITER;
 
-  size_t sent = context.send(buffer, P4_CMD_ZONE_ON_SIZE);
+  size_t sent = context->send(buffer, P4_CMD_ZONE_ON_SIZE);
 
   return sent == P4_CMD_ZONE_ON_SIZE ? P4RC_OK : P4RC_SEND_ERROR;
 }
 
-P4ReturnCode p4SetZoneOff(const P4SerialContext context, const P4MatrixZone zone) {
+P4ReturnCode p4SetZoneOff(const P4SerialContext * const context, const P4MatrixZone zone) {
   unsigned char buffer[P4_CMD_ZONE_OFF_SIZE] = { 0 };
 
   CHECK_ZONE_VALIDITY;
@@ -121,12 +136,12 @@ P4ReturnCode p4SetZoneOff(const P4SerialContext context, const P4MatrixZone zone
   encodeZone(&(buffer[1]), zone);
   buffer[5] = P4_CMD_DELIMITER;
 
-  size_t sent = context.send(buffer, P4_CMD_ZONE_OFF_SIZE);
+  size_t sent = context->send(buffer, P4_CMD_ZONE_OFF_SIZE);
 
   return sent == P4_CMD_ZONE_OFF_SIZE ? P4RC_OK : P4RC_SEND_ERROR;
 }
 
-P4ReturnCode p4SetZoneIntensity(const P4SerialContext context, const P4MatrixZone zone, const unsigned char intensity) {
+P4ReturnCode p4SetZoneIntensity(const P4SerialContext * const context, const P4MatrixZone zone, const P4Intensity intensity) {
   unsigned char buffer[P4_CMD_ZONE_INTENSITY_SIZE] = { 0 };
 
   CHECK_ZONE_VALIDITY;
@@ -136,12 +151,12 @@ P4ReturnCode p4SetZoneIntensity(const P4SerialContext context, const P4MatrixZon
   encodeByte(&(buffer[5]), intensity);
   buffer[7] = P4_CMD_DELIMITER;
 
-  size_t sent = context.send(buffer, P4_CMD_ZONE_INTENSITY_SIZE);
+  size_t sent = context->send(buffer, P4_CMD_ZONE_INTENSITY_SIZE);
 
   return sent == P4_CMD_ZONE_INTENSITY_SIZE ? P4RC_OK : P4RC_SEND_ERROR;
 }
 
-P4ReturnCode p4SetZoneBlink(const P4SerialContext context, const P4MatrixZone zone, const unsigned short onTime, const unsigned short offTime) {
+P4ReturnCode p4SetZoneBlink(const P4SerialContext * const context, const P4MatrixZone zone, const P4DelayMs onTime, const P4DelayMs offTime) {
   unsigned char buffer[P4_CMD_ZONE_BLINK_SIZE] = { 0 };
 
   CHECK_ZONE_VALIDITY;
@@ -152,7 +167,40 @@ P4ReturnCode p4SetZoneBlink(const P4SerialContext context, const P4MatrixZone zo
   encodeShort(&(buffer[9]), offTime);
   buffer[13] = P4_CMD_DELIMITER;
 
-  size_t sent = context.send(buffer, P4_CMD_ZONE_BLINK_SIZE);
+  size_t sent = context->send(buffer, P4_CMD_ZONE_BLINK_SIZE);
 
   return sent == P4_CMD_ZONE_BLINK_SIZE ? P4RC_OK : P4RC_SEND_ERROR;
 }
+
+P4ReturnCode p4SetRingColor(const P4SerialContext * const context, const P4MatrixPoint ring, const P4Color color) {
+  unsigned char buffer[P4_CMD_SHORT_RING_SIZE] = { 0 };
+
+  CHECK_POINT_VALIDITY(ring);
+
+  buffer[0] = P4_CMD_SHORT_RING_CMD;
+  encodePoint(&(buffer[1]), ring);
+  encodeColor(&(buffer[3]), color);
+  buffer[P4_CMD_SHORT_RING_SIZE- 1] = P4_CMD_DELIMITER;
+
+  size_t sent = context->send(buffer, P4_CMD_SHORT_RING_SIZE);
+
+  return sent == P4_CMD_SHORT_RING_SIZE ? P4RC_OK : P4RC_SEND_ERROR;
+}
+
+P4ReturnCode p4SetLedRingColor(const P4SerialContext * const context, const P4MatrixPoint ring, const P4Color colors[]) {
+  unsigned char buffer[P4_CMD_RING_COLOR_SIZE] = { 0 };
+
+  CHECK_POINT_VALIDITY(ring);
+
+  buffer[0] = P4_CMD_RING_COLOR_CMD;
+  encodePoint(&(buffer[1]), ring);
+  for (int i = 0; i < P4_BOARD_NB_LEDS_PER_RING; ++i) {
+    encodeColor(&(buffer[3 + i* 6]), colors[i]);
+  }
+  buffer[P4_CMD_RING_COLOR_SIZE - 1] = P4_CMD_DELIMITER;
+
+  size_t sent = context->send(buffer, P4_CMD_RING_COLOR_SIZE);
+
+  return sent == P4_CMD_RING_COLOR_SIZE ? P4RC_OK : P4RC_SEND_ERROR;
+}
+
