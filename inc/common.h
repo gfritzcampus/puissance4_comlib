@@ -33,7 +33,7 @@
 #endif
 
 #ifndef P4_BOARD_NB_LEDS_PER_RING
-  #define P4_BOARD_NB_LEDS_PER_RING (1)
+  #define P4_BOARD_NB_LEDS_PER_RING (24)
 #endif
 
 #define P4_CMD_RING_COLOR_SIZE (4 + 3 * 2 * P4_BOARD_NB_LEDS_PER_RING)
