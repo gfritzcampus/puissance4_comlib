@@ -70,7 +70,7 @@ typedef struct {
 /**
  * @brief Black color
  */
-static const P4Color P4BlackP4Color = { 
+static const P4Color P4BlackColor = { 
   .red = 0, 
   .green = 0, 
   .blue = 0
@@ -79,7 +79,7 @@ static const P4Color P4BlackP4Color = {
 /**
  * @brief White color
  */
-static const P4Color P4WhiteP4Color = { 
+static const P4Color P4WhiteColor = { 
   .red = 255, 
   .green = 255, 
   .blue = 255
@@ -88,7 +88,7 @@ static const P4Color P4WhiteP4Color = {
 /**
  * @brief Red color
  */
-static const P4Color P4Red = {
+static const P4Color P4RedColor = {
   .red = 255, 
   .green = 0, 
   .blue = 0
@@ -97,7 +97,7 @@ static const P4Color P4Red = {
 /**
  * @brief Green color
  */
-static const P4Color P4Green = {
+static const P4Color P4GreenColor = {
   .red = 0, 
   .green = 255, 
   .blue = 0
@@ -106,7 +106,7 @@ static const P4Color P4Green = {
 /**
  * @brief Blue color
  */
-static const P4Color P4Blue = {
+static const P4Color P4BlueColor = {
   .red = 255, 
   .green = 0, 
   .blue = 0
@@ -115,10 +115,19 @@ static const P4Color P4Blue = {
 /**
  * @brief Yellow color
  */
-static const P4Color P4Yellow = {
+static const P4Color P4YellowColor = {
   .red = 255, 
   .green = 255, 
   .blue = 0
+};
+
+/**
+ * @brief Cyan color
+ */
+static const P4Color P4CyanColor = {
+  .red = 0,
+  .green = 255,
+  .blue = 255
 };
 
 /**
@@ -201,6 +210,15 @@ typedef struct {
   bool isFull;                                          //!< Store if ring buffer is full
   bool inError;                                         //!< Store if ring buffer is in error
 } P4RingBuffer;
+
+#define INIT_BUFFER(BUFFER, SIZE) { \
+  .data = BUFFER,\
+  .size = SIZE, \
+  .head = 0,\
+  .tail = 0,\
+  .isFull = false,\
+  .inError = false\
+}
 
 /**
  * @brief Store serial context used to send command

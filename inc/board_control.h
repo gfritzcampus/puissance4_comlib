@@ -13,7 +13,7 @@
  *         - P4RC_SEND_ERROR if error sending command
  *         - P4RC_OK otherwise
  */ 
-P4ReturnCode p4SetZoneP4Color(const P4SerialContext * const context, const P4MatrixZone zone, const P4Color color);
+P4ReturnCode p4SetZoneColor(const P4SerialContext * const context, const P4MatrixZone zone, const P4Color color);
 
 /**
  * @brief Turn on display matrix zone, using color

@@ -1,16 +1,7 @@
 #include "players_control.h"
+#include "test.h"
 
-#include <stdio.h>
 #include <string.h>
-
-#define VA_ARGS(...) , ##__VA_ARGS__
-#define assert(cond, msg, ...) {\
-  if (!(cond)) {\
-    printf(" ---> ASSERT FAIL at %d : "\
-    msg\
-    "\n", __LINE__ VA_ARGS(__VA_ARGS__));\
-  }\
-}
 
 #define MAX_CALLS 20
 #define MAX_SIZE 256
@@ -35,10 +26,6 @@ static size_t stub_send(const void * const buffer, size_t size) {
   return stub_send_return[stub_send_nb_calls - 1];
 }
 
-static void setCurrentTest(const char * const test) {
-  printf(" -> %s\n", test);
-}
-
 int main(int argc, const char *argv[])
 {
   P4ReturnCode ret;
@@ -49,7 +36,7 @@ int main(int argc, const char *argv[])
   };
 
   /////////////////////////////////////////////////////////////////
-  setCurrentTest("Correct call");
+  setCurrentTest("player press");
   stub_send_init();
   for(size_t i = 0; i < 16; ++i) {
     stub_send_return[i] = P4_CMD_PLAYER_SIZE;

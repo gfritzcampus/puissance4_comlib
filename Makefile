@@ -3,21 +3,37 @@ OBJ=$(SRC:.c=.o)
 CFLAGS=-Iinc -Werror -Wall -g -O0
 CC=gcc
 
+LIBNAME=libpuissance4.a
+
 TEST_SRC=$(shell find test -name "test_*.c")
 TEST_OBJ=$(TEST_SRC:.c=.o)
 TEST_EXE=$(TEST_SRC:.c=)
+TEST_RUN=$(addprefix run-,$(notdir $(TEST_EXE)))
 
-all: $(TEST_EXE)
+all: $(LIBNAME) test
 
-$(OBJ):%.o:%.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+$(LIBNAME): $(OBJ)
+	ar rcs $@ $+
 
-$(TEST_EXE):%:%.c $(OBJ)
+$(OBJ):src/%.o:inc/%.h
+$(OBJ): inc/common.h
+$(filter %_receiver.o,$(OBJ)): inc/receiver.h
+$(TEST_OBJ): inc/common.h test/test.h
+
+$(TEST_EXE):test/test_%:test/test_%.o src/%.o
 	$(CC) $(CFLAGS) -o $@ $^
-	./$@
 
-print-%  : ; @echo $* = $($*)
+$(TEST_RUN):run-%:test/%
+	-@./$^
+
+test: $(TEST_EXE)
+	make $(addprefix run-,$(notdir $?))
+	touch test
+
+.PHONY: clean 
 
 clean:
 	-@rm -f $(OBJ) 2>/dev/null
 	-@rm -f $(TEST_EXE) 2>/dev/null
+	-@rm -f test/*.o 2>/dev/null
+	-@rm -f src/*.o 2>/dev/null

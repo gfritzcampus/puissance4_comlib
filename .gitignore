@@ -71,6 +71,3 @@ tags
 # Persistent undo
 [._]*.un~
 
-test/
-!test/*.*
-
