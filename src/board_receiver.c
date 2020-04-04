@@ -11,7 +11,7 @@
  */
 static unsigned char decodeRow(const char row) {
   unsigned char decoded = decodeHalfByte(row);
-  if (0 <= row && row < P4_BOARD_NB_ROWS) {
+  if (decoded < P4_BOARD_NB_ROWS) {
     return decoded;
   }
   return -1;
@@ -25,7 +25,7 @@ static unsigned char decodeRow(const char row) {
  */
 static unsigned char decodeColumn(const char column) {
   unsigned char decoded = decodeHalfByte(column);
-  if (0 <= column && column < P4_BOARD_NB_COLUMNS) {
+  if (decoded < P4_BOARD_NB_COLUMNS) {
     return decoded;
   }
   return -1;

@@ -64,7 +64,7 @@ int main(int argc, const char *argv[])
   assert(command.type == P4DCT_None, "Should return None command");
   command = p4AccumulateFromDisplayer(&context, '\n');
   assert(command.returnCode == P4RC_OK, "Should return OK");
-  assert(command.type == P4DCT_PlayerCommand, "Should return None command");
+  assert(command.type == P4DCT_PlayerCommand, "Should return player command");
   assert(command.player.player == P4P_PLAYER_1, "Should decode player one");
   assert(command.player.action == P4A_LEFT, "Should decode left action");
   assert(command.player.status == P4AS_UP, "Should decode up action status");
@@ -83,7 +83,7 @@ int main(int argc, const char *argv[])
   assert(command.type == P4DCT_None, "Should return None command");
   command = p4AccumulateFromDisplayer(&context, '\n');
   assert(command.returnCode == P4RC_OK, "Should return OK");
-  assert(command.type == P4DCT_LightSensor, "Should return None command");
+  assert(command.type == P4DCT_LightSensor, "Should return light sensor command");
   assert(command.lightsensor.value == 100, "Should decode an intensity of 100");
 
   return displayStats();
