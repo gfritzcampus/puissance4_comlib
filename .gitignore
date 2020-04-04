@@ -71,3 +71,6 @@ tags
 # Persistent undo
 [._]*.un~
 
+test/test_board_control
+test/test_receiver
+test/test_displayer_control

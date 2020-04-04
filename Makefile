@@ -25,6 +25,7 @@ $(TEST_EXE):test/test_%:test/test_%.o src/%.o
 
 $(TEST_RUN):run-%:test/%
 	-@./$^
+	if ! grep -qe "$^" .gitignore; then echo "$^" >> .gitignore; fi
 
 test: $(TEST_EXE)
 	make $(addprefix run-,$(notdir $?))
