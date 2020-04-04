@@ -1,4 +1,4 @@
-#include "players_control.h"
+#include "displayer_control.h"
 
 /**
  * @brief Return character representing player
@@ -63,3 +63,16 @@ P4ReturnCode p4PlayerPress(const P4SerialContext * const context, const P4Player
 
   return sent == P4_CMD_PLAYER_SIZE ? P4RC_OK : P4RC_SEND_ERROR;
 }
+
+P4ReturnCode p4LightSensor(const P4SerialContext * const context, const P4LightSensor lightSensorValue) {
+  unsigned char buffer[P4_CMD_LIGHT_SENSOR_SIZE] = { 0 };
+
+  buffer[0] = P4_CMD_LIGHT_SENSOR_CMD;
+  encodeByte(&(buffer[1]), lightSensorValue);
+  buffer[3] = P4_CMD_DELIMITER;
+
+  size_t sent = context->send(buffer, P4_CMD_LIGHT_SENSOR_SIZE);
+
+  return sent == P4_CMD_LIGHT_SENSOR_SIZE ? P4RC_OK : P4RC_SEND_ERROR;
+}
+

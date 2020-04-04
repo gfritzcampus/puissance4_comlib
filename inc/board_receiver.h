@@ -3,6 +3,27 @@
 
 #include "common.h"
 
+typedef enum {
+  P4BCT_None,
+  P4BCT_RingColor,
+  P4BCT_ZoneIntensity
+} P4BoardCommandType ;
+
+typedef struct {
+  P4ReturnCode returnCode;
+  P4BoardCommandType type;
+  union {
+    struct {
+      P4MatrixPoint point;
+      P4Color color;
+    } ringColor;
+    struct {
+      P4MatrixZone zone;
+      P4Intensity intensity;
+    } zoneIntensity;
+  };
+} P4BoardCommand;
+
 /**
  * @brief init receiver part of serial context, when receiving from core
  *        to board displayer
@@ -19,6 +40,6 @@ P4ReturnCode p4ReceiverInitFromCore(P4SerialContext * const context);
  * @param context Serial context
  * @parma data Byte received
  */
-P4ReturnCode p4AccumulateFromCore(P4SerialContext * const context, const char data);
+P4BoardCommand p4AccumulateFromCore(P4SerialContext * const context, const char data);
 
 #endif

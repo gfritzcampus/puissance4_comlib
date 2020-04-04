@@ -76,57 +76,60 @@ inline static void clearBuffer(P4RingBuffer * const buffer) {
  * @param context Serial context
  * @param commands Array of commands, last should be a command with code equal to '\0'
  */
-inline static void decodeCommand(P4SerialContext * const context, const P4Command * const commands) {
+inline static P4ReturnCode decodeCommand(P4ReceiverContext * const context, const P4Command * const commands) {
+  P4ReturnCode result = P4RC_OK;
   const P4Command * current_cmd = commands;
-  P4RingBuffer * const buffer = &context->buffer;
+  P4RingBuffer * const buffer = context->buffer;
 
   while(current_cmd->code != '\0') {
     if (current_cmd->code == buffer->data[buffer->tail] &&
         current_cmd->length == (sizeBuffer(buffer) + 1)) {
       p4PopReceivedData(context);
-      current_cmd->decoder(context);
+      result = current_cmd->decoder(context);
+      break;
     }
+    ++current_cmd;
   }
 
   clearBuffer(buffer);
+  return result;
 }
 
-P4ReturnCode p4ReceiverInit(P4SerialContext * context) {
-  clearBuffer(&context->buffer);
+P4ReturnCode p4ReceiverInit(P4ReceiverContext * context) {
+  clearBuffer(context->buffer);
 
   return P4RC_OK;
 }
 
-P4ReturnCode p4Accumulate(P4SerialContext * const context, const P4Command * const commands, const char data) {
-  if (isFullBuffer(&context->buffer)) {
-    clearBuffer(&context->buffer);
-    context->buffer.inError = true;
-    return P4RC_BUFFER_FULL;
-  }
-
+P4ReturnCode p4Accumulate(P4ReceiverContext * const context, const P4Command * const commands, const char data) {
   if (data == P4_CMD_DELIMITER) {
-    if (context->buffer.inError) {
-      context->buffer.inError = false;
+    if (context->buffer->inError) {
+      context->buffer->inError = false;
     }
     else {
-      decodeCommand(context, commands);
+      return decodeCommand(context, commands);
     }
   }
   else {
-    if (!context->buffer.inError) {
-      pushByte(&context->buffer, data);
+    if (isFullBuffer(context->buffer)) {
+      clearBuffer(context->buffer);
+      context->buffer->inError = true;
+    }
+
+    if (!context->buffer->inError) {
+      pushByte(context->buffer, data);
     }
   }
   
   return P4RC_OK;
 }
 
-char p4PopReceivedData(P4SerialContext * const context) {
-  size_t idx = context->buffer.tail;
+char p4PopReceivedData(P4ReceiverContext * const context) {
+  size_t idx = context->buffer->tail;
 
-  context->buffer.isFull = false;
-  context->buffer.tail = (context->buffer.tail + 1) % context->buffer.size;
+  context->buffer->isFull = false;
+  context->buffer->tail = (context->buffer->tail + 1) % context->buffer->size;
 
-  return context->buffer.data[idx];
+  return context->buffer->data[idx];
 }
 

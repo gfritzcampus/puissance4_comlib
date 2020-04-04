@@ -1,16 +1,7 @@
-#include "players_control.h"
+#include "displayer_control.h"
+#include "test.h"
 
-#include <stdio.h>
 #include <string.h>
-
-#define VA_ARGS(...) , ##__VA_ARGS__
-#define assert(cond, msg, ...) {\
-  if (!(cond)) {\
-    printf(" ---> ASSERT FAIL at %d : "\
-    msg\
-    "\n", __LINE__ VA_ARGS(__VA_ARGS__));\
-  }\
-}
 
 #define MAX_CALLS 20
 #define MAX_SIZE 256
@@ -35,10 +26,6 @@ static size_t stub_send(const void * const buffer, size_t size) {
   return stub_send_return[stub_send_nb_calls - 1];
 }
 
-static void setCurrentTest(const char * const test) {
-  printf(" -> %s\n", test);
-}
-
 int main(int argc, const char *argv[])
 {
   P4ReturnCode ret;
@@ -47,9 +34,29 @@ int main(int argc, const char *argv[])
   P4SerialContext context = {
     .send = stub_send,
   };
+  /////////////////////////////////////////////////////////////////
+  setCurrentTest("light sensor value");
+  stub_send_init();
+  for(size_t i = 0; i < 3; ++i) {
+    stub_send_return[i] = P4_CMD_LIGHT_SENSOR_SIZE;
+  }
+  ret = p4LightSensor(&context, 0);
+  assert(ret == P4RC_OK, "Should return OK");
+  ret = p4LightSensor(&context, 100);
+  assert(ret == P4RC_OK, "Should return OK");
+  ret = p4LightSensor(&context, 255);
+  assert(ret == P4RC_OK, "Should return OK");
+
+  assert(stub_send_nb_calls == 3, "Should call only one time send");
+  assert(stub_send_size[0] == P4_CMD_LIGHT_SENSOR_SIZE, "Should send correct number of bytes");
+  assert(stub_send_size[1] == P4_CMD_LIGHT_SENSOR_SIZE, "Should send correct number of bytes");
+  assert(stub_send_size[2] == P4_CMD_LIGHT_SENSOR_SIZE, "Should send correct number of bytes");
+  assert(memcmp(stub_send_buffer[0], "l00\n", P4_CMD_LIGHT_SENSOR_SIZE) == 0, "Should send correct command");
+  assert(memcmp(stub_send_buffer[1], "l64\n", P4_CMD_LIGHT_SENSOR_SIZE) == 0, "Should send correct command");
+  assert(memcmp(stub_send_buffer[2], "lFF\n", P4_CMD_LIGHT_SENSOR_SIZE) == 0, "Should send correct command");
 
   /////////////////////////////////////////////////////////////////
-  setCurrentTest("Correct call");
+  setCurrentTest("player press");
   stub_send_init();
   for(size_t i = 0; i < 16; ++i) {
     stub_send_return[i] = P4_CMD_PLAYER_SIZE;
@@ -120,4 +127,7 @@ int main(int argc, const char *argv[])
   assert(memcmp(stub_send_buffer[13], "p2ld\n", P4_CMD_PLAYER_SIZE) == 0, "Should send correct command");
   assert(memcmp(stub_send_buffer[14], "p2ru\n", P4_CMD_PLAYER_SIZE) == 0, "Should send correct command");
   assert(memcmp(stub_send_buffer[15], "p2rd\n", P4_CMD_PLAYER_SIZE) == 0, "Should send correct command");
+
+  displayStats();
 }
+

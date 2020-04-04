@@ -6,20 +6,11 @@
 
 #define P4_CMD_DELIMITER '\n'
 
-#define P4_CMD_ZONE_COLOR_SIZE (12)
-#define P4_CMD_ZONE_COLOR_CMD 'c'
-
-#define P4_CMD_ZONE_ON_SIZE (6)
-#define P4_CMD_ZONE_ON_CMD 'O'
-
-#define P4_CMD_ZONE_OFF_SIZE (6)
-#define P4_CMD_ZONE_OFF_CMD 'o'
-
 #define P4_CMD_ZONE_INTENSITY_SIZE (8)
 #define P4_CMD_ZONE_INTENSITY_CMD 'i'
 
-#define P4_CMD_ZONE_BLINK_SIZE (14)
-#define P4_CMD_ZONE_BLINK_CMD 'b'
+#define P4_CMD_LIGHT_SENSOR_SIZE (4)
+#define P4_CMD_LIGHT_SENSOR_CMD 'l'
 
 #define P4_CMD_PLAYER_SIZE (5)
 #define P4_CMD_PLAYER_CMD 'p'
@@ -31,13 +22,6 @@
 #ifndef P4_BOARD_NB_COLUMNS
   #define P4_BOARD_NB_COLUMNS (7)
 #endif
-
-#ifndef P4_BOARD_NB_LEDS_PER_RING
-  #define P4_BOARD_NB_LEDS_PER_RING (24)
-#endif
-
-#define P4_CMD_RING_COLOR_SIZE (4 + 3 * 2 * P4_BOARD_NB_LEDS_PER_RING)
-#define P4_CMD_RING_COLOR_CMD 'r'
 
 #define P4_CMD_SHORT_RING_SIZE (10)
 #define P4_CMD_SHORT_RING_CMD 'R'
@@ -70,7 +54,7 @@ typedef struct {
 /**
  * @brief Black color
  */
-static const P4Color P4BlackP4Color = { 
+static const P4Color P4BlackColor = { 
   .red = 0, 
   .green = 0, 
   .blue = 0
@@ -79,7 +63,7 @@ static const P4Color P4BlackP4Color = {
 /**
  * @brief White color
  */
-static const P4Color P4WhiteP4Color = { 
+static const P4Color P4WhiteColor = { 
   .red = 255, 
   .green = 255, 
   .blue = 255
@@ -88,7 +72,7 @@ static const P4Color P4WhiteP4Color = {
 /**
  * @brief Red color
  */
-static const P4Color P4Red = {
+static const P4Color P4RedColor = {
   .red = 255, 
   .green = 0, 
   .blue = 0
@@ -97,7 +81,7 @@ static const P4Color P4Red = {
 /**
  * @brief Green color
  */
-static const P4Color P4Green = {
+static const P4Color P4GreenColor = {
   .red = 0, 
   .green = 255, 
   .blue = 0
@@ -106,7 +90,7 @@ static const P4Color P4Green = {
 /**
  * @brief Blue color
  */
-static const P4Color P4Blue = {
+static const P4Color P4BlueColor = {
   .red = 255, 
   .green = 0, 
   .blue = 0
@@ -115,10 +99,19 @@ static const P4Color P4Blue = {
 /**
  * @brief Yellow color
  */
-static const P4Color P4Yellow = {
+static const P4Color P4YellowColor = {
   .red = 255, 
   .green = 255, 
   .blue = 0
+};
+
+/**
+ * @brief Cyan color
+ */
+static const P4Color P4CyanColor = {
+  .red = 0,
+  .green = 255,
+  .blue = 255
 };
 
 /**
@@ -158,37 +151,14 @@ typedef enum {
   P4RC_INVALID_PARAMETERS,  //!< Parameters of functions are invalid
   P4RC_SEND_ERROR,          //!< Error sending command
   P4RC_BUFFER_FULL,         //!< Buffer full
+  P4RC_DECODE_ERROR,        //!< Received command can't be decoded
 } P4ReturnCode;
 
 //! Store an intensity
 typedef unsigned char P4Intensity;
 
-//! Store a delay in milliseconds
-typedef unsigned short P4DelayMs;
-
-//! @brief Callback function type to inform that player has do an action
-typedef void (*P4PlayerActionCallback)(void *, const P4Player, const P4Action, const P4ActionStatus);
-
-//! @brief Callback function type to inform zone changes a color
-typedef void (*P4ZoneColorCallback)(void *, const P4MatrixZone, const P4Color);
-
-//! @brief Callback function type to inform zone is turn on
-typedef void (*P4ZoneOnCallback)(void *, const P4MatrixZone);
-
-//! @brief Callback function type to inform zone is turn off
-typedef void (*P4ZoneOffCallback)(void *, const P4MatrixZone);
-
-//! @brief Callback function type to inform zone changes intensity
-typedef void (*P4ZoneIntensityCallback)(void *, const P4MatrixZone, const P4Intensity);
-
-//! @brief Callback function type to inform zone blink
-typedef void (*P4ZoneBlinkCallback)(void *, const P4MatrixZone, const P4DelayMs, const P4DelayMs);
-
-//! @brief Callback function type to inform ring update
-typedef void (*P4RingColorCallback)(void *, const P4MatrixPoint, const size_t, const P4Color[]);
-
-//! @brief Callback function type to inform short ring update
-typedef void (*P4ShortRingColorCallback)(void *, const P4MatrixPoint, const P4Color);
+//! Store a light sensor
+typedef unsigned char P4LightSensor;
 
 /**
  * @brief describe a ring buffer to accumulate data
@@ -202,26 +172,25 @@ typedef struct {
   bool inError;                                         //!< Store if ring buffer is in error
 } P4RingBuffer;
 
+#define INIT_BUFFER(BUFFER, SIZE) { \
+  .data = BUFFER,\
+  .size = SIZE, \
+  .head = 0,\
+  .tail = 0,\
+  .isFull = false,\
+  .inError = false\
+}
+
 /**
  * @brief Store serial context used to send command
  */
 typedef struct 
 {
-  size_t (*send)(const void * const buffer, size_t size);           //!< Function to send command
+  //! Function used to send data
+  size_t (*send)(const void * const buffer, size_t size);
 
+  //! Buffer used to store received data before decoding
   P4RingBuffer buffer;
-
-  P4PlayerActionCallback playerActionCallback;          //!< Callback to use when a player action is received
-  P4ZoneColorCallback zoneColorCallback;                //!< Callback to use when a color zone is received
-  P4ZoneOnCallback zoneOnCallback;                      //!< Callback to use when a zone on is received
-  P4ZoneOffCallback zoneOffCallback;                    //!< Callback to use when a zone off is received
-  P4ZoneIntensityCallback zoneIntensityCallback;        //!< Callback to use when an intensity zone is received
-  P4ZoneBlinkCallback zoneBlinkCallback;                //!< Callback to use when a zone blink is received
-  P4RingColorCallback ringColorCallback;                //!< Callback to use when a ring is updated
-  P4ShortRingColorCallback shortRingColorCallback;      //!< Callback to use when a ring is updated using short command
-
-  void * cookie;                                        //!< Store pointer to user data, which will passed as first
-                                                        //!< argument of callbacks
 } P4SerialContext;
 
 /**
@@ -249,6 +218,35 @@ static inline bool isValidMatrixZone(P4MatrixZone zone)
 {
   return isValidMatrixPoint(zone.startPoint) &&
          isValidMatrixPoint(zone.endPoint);
+}
+
+/**
+ * @brief encode number between 0 and 15 in its hexadecimal representation
+ *
+ * @param i Number to encode
+ * @return [0-9A-F] if 0 < i < 16; X otherwise
+ */
+static inline unsigned char toHexaHalfByte(const unsigned char i) {
+  if (i < 9) {
+    return '0' + i;
+  }
+  else if (i < 16) {
+    return 'A' + (i - 10);
+  }
+  else {
+    return 'X';
+  }
+}
+
+/**
+ * @brief encode byte in its hexadecimal representation
+ *
+ * @param buffer Buffer to store result, should be at least size 2
+ * @param byte Byte to encode
+ */
+static inline void encodeByte(unsigned char * const buffer, const unsigned char byte) {
+  buffer[0] = toHexaHalfByte((byte >> 4) & 0x0F); 
+  buffer[1] = toHexaHalfByte(byte & 0x0F);
 }
 
 #endif
