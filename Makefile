@@ -31,7 +31,10 @@ test: $(TEST_EXE)
 	make $(addprefix run-,$(notdir $?))
 	touch test
 
-.PHONY: clean 
+doc:
+	doxygen Doxyfile
+
+.PHONY: clean doc
 
 clean:
 	-@rm -f $(OBJ) 2>/dev/null

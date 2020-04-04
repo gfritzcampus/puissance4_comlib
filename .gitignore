@@ -70,7 +70,10 @@ Sessionx.vim
 tags
 # Persistent undo
 [._]*.un~
+# auto-generate doc
+doc/
 
+# Unit test
 test/test_board_control
 test/test_receiver
 test/test_displayer_control
