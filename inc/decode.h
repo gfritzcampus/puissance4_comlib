@@ -38,7 +38,7 @@ static bool decodeByte(const char mshb, const char lshb, unsigned char * const r
     return false;
   }
 
-  *result = (mshb << 4) + lshb;
+  *result = ((decoded_mshb << 4) | decoded_lshb);
 
   return true;
 }

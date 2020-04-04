@@ -50,6 +50,7 @@ int main(int argc, const char *argv[])
     .cookie = NULL
   };
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   setCurrentTest("Macro INIT_BUFFER");
 
   assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
@@ -59,6 +60,7 @@ int main(int argc, const char *argv[])
   assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
   assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   setCurrentTest("receiver init");
 
   context.buffer.head = 4;
@@ -78,10 +80,12 @@ int main(int argc, const char *argv[])
 
   P4Command commands[] = {
      { 'a', 4, decode_a },
-     { 'b', 6, decode_b },
+     { 'b', 2, decode_b },
      { 'c', 8, decode_c },
+     { '\0', 0, NULL }
   };
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   setCurrentTest("Add correctly one char");
   init_cmds();
   context.buffer.head = SIZE_OF_BUFFER - 2;
@@ -96,6 +100,7 @@ int main(int argc, const char *argv[])
   assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
   assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   setCurrentTest("Add correctly one char when head pointer point last cell of buffer");
   ret = p4Accumulate(&rcontext, commands, 'b');
   assert(ret == P4RC_OK, "Should return OK");
@@ -106,6 +111,112 @@ int main(int argc, const char *argv[])
   assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
   assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
 
-  displayStats();
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  setCurrentTest("Fill completly buffer");
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  assert(ret == P4RC_OK, "Should return OK");
+  assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
+  assert(context.buffer.size == SIZE_OF_BUFFER, "Ring buffer should have correct size");
+  assert(context.buffer.head == 0, "Head should point to first cell");
+  assert(context.buffer.tail == 0, "Tail should still same");
+  assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
+  assert(context.buffer.inError == true, "Ring buffer should be mark as faulted");
+  ret = p4Accumulate(&rcontext, commands, '\n');
+  assert(ret == P4RC_OK, "Should return OK");
+  assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
+  assert(context.buffer.size == SIZE_OF_BUFFER, "Ring buffer should have correct size");
+  assert(context.buffer.head == 0, "Head should point to first cell");
+  assert(context.buffer.tail == 0, "Tail should still same");
+  assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
+  assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  setCurrentTest("pop a byte");
+  ret = p4Accumulate(&rcontext, commands, 'c');
+  assert(ret == P4RC_OK, "Should return OK");
+  assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
+  assert(context.buffer.size == SIZE_OF_BUFFER, "Ring buffer should have correct size");
+  assert(context.buffer.head == 1, "Head should point to first cell");
+  assert(context.buffer.tail == 0, "Tail should still same");
+  assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
+  assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
+  ret = p4Accumulate(&rcontext, commands, 'd');
+  assert(ret == P4RC_OK, "Should return OK");
+  assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
+  assert(context.buffer.size == SIZE_OF_BUFFER, "Ring buffer should have correct size");
+  assert(context.buffer.head == 2, "Head should point to first cell");
+  assert(context.buffer.tail == 0, "Tail should still same");
+  assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
+  assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
+  char pop = p4PopReceivedData(&rcontext);
+  assert(pop == 'c', "Should return first inserted data");
+  assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
+  assert(context.buffer.size == SIZE_OF_BUFFER, "Ring buffer should have correct size");
+  assert(context.buffer.head == 2, "Head should point to first cell");
+  assert(context.buffer.tail == 1, "Tail should still same");
+  assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
+  assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
+  pop = p4PopReceivedData(&rcontext);
+  assert(pop == 'd', "Should return last inserted data");
+  assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
+  assert(context.buffer.size == SIZE_OF_BUFFER, "Ring buffer should have correct size");
+  assert(context.buffer.head == 2, "Head should point to first cell");
+  assert(context.buffer.tail == 2, "Tail should still same");
+  assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
+  assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  setCurrentTest("Decode a function");
+  init_cmds();
+  cmd_b_return[0] = P4RC_DECODE_ERROR;
+  ret = p4Accumulate(&rcontext, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, '\n');
+  assert(ret == P4RC_DECODE_ERROR, "Should return function result");
+  assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
+  assert(context.buffer.size == SIZE_OF_BUFFER, "Ring buffer should have correct size");
+  assert(context.buffer.head == 0, "Head should point to first cell");
+  assert(context.buffer.tail == 0, "Tail should still same");
+  assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
+  assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
+  assert(cmd_a_nb_calls == 0, "Should have not call a");
+  assert(cmd_b_nb_calls == 1, "Should have call b");
+  assert(cmd_c_nb_calls == 0, "Should have not call c");
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  setCurrentTest("Unknown function");
+  init_cmds();
+  ret = p4Accumulate(&rcontext, commands, 'd');
+  assert(ret == P4RC_OK, "Should return OK");
+  assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
+  assert(context.buffer.size == SIZE_OF_BUFFER, "Ring buffer should have correct size");
+  assert(context.buffer.head == 1, "Head should point to first cell");
+  assert(context.buffer.tail == 0, "Tail should still same");
+  assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
+  assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
+  ret = p4Accumulate(&rcontext, commands, '\n');
+  assert(ret == P4RC_OK, "Should return OK");
+  assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
+  assert(context.buffer.size == SIZE_OF_BUFFER, "Ring buffer should have correct size");
+  assert(context.buffer.head == 0, "Head should point to first cell");
+  assert(context.buffer.tail == 0, "Tail should still same");
+  assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
+  assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
+  assert(cmd_a_nb_calls == 0, "Should have not call a");
+  assert(cmd_b_nb_calls == 0, "Should have not call b");
+  assert(cmd_c_nb_calls == 0, "Should have not call c");
+
+
+
+  return displayStats();
 }
 

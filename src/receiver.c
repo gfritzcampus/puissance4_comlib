@@ -86,7 +86,9 @@ inline static P4ReturnCode decodeCommand(P4ReceiverContext * const context, cons
         current_cmd->length == (sizeBuffer(buffer) + 1)) {
       p4PopReceivedData(context);
       result = current_cmd->decoder(context);
+      break;
     }
+    ++current_cmd;
   }
 
   clearBuffer(buffer);
@@ -100,12 +102,6 @@ P4ReturnCode p4ReceiverInit(P4ReceiverContext * context) {
 }
 
 P4ReturnCode p4Accumulate(P4ReceiverContext * const context, const P4Command * const commands, const char data) {
-  if (isFullBuffer(context->buffer)) {
-    clearBuffer(context->buffer);
-    context->buffer->inError = true;
-    return P4RC_BUFFER_FULL;
-  }
-
   if (data == P4_CMD_DELIMITER) {
     if (context->buffer->inError) {
       context->buffer->inError = false;
@@ -115,6 +111,11 @@ P4ReturnCode p4Accumulate(P4ReceiverContext * const context, const P4Command * c
     }
   }
   else {
+    if (isFullBuffer(context->buffer)) {
+      clearBuffer(context->buffer);
+      context->buffer->inError = true;
+    }
+
     if (!context->buffer->inError) {
       pushByte(context->buffer, data);
     }

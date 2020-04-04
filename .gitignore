@@ -74,3 +74,4 @@ tags
 test/test_board_control
 test/test_receiver
 test/test_displayer_control
+test/test_displayer_receiver

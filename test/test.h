@@ -26,7 +26,7 @@ static void setCurrentTest(const char * const test) {
   printf(" #%02ld %s\n", test_nb_tests, test);
 }
 
-static void displayStats(void) {
+static int displayStats(void) {
   printf("---------------------------------------------\n");
 
   printf(" Nb tests : %ld / Nb asserts : %ld\n", test_nb_tests, test_nb_asserts);
@@ -36,6 +36,8 @@ static void displayStats(void) {
   else {
     printf(" No error\n");
   }
+
+  return test_nb_failed_asserts;
 }
 
 #endif
