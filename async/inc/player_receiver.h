@@ -1,5 +1,5 @@
-#ifndef _P4_BOARD_RECEIVER
-#define _P4_BOARD_RECEIVER
+#ifndef _P4_PLAYER_RECEIVER
+#define _P4_PLAYER_RECEIVER
 
 #include "common.h"
 

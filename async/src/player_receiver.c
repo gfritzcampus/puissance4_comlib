@@ -1,4 +1,4 @@
-#include "board_receiver.h"
+#include "player_receiver.h"
 
 #include "receiver.h"
 

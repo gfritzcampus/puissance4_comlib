@@ -54,39 +54,6 @@ int main(int argc, const char *argv[])
     };
 
   /////////////////////////////////////////////////////////////////
-  setCurrentTest("zone color");
-  stub_send_init();
-  stub_send_return[0] = P4_CMD_ZONE_COLOR_SIZE;
-  ret = p4SetZoneColor(&context, zone, color);
-
-  assert(ret == P4RC_OK, "Should return OK");
-  assert(stub_send_nb_calls == 1, "Should call only one time send");
-  assert(stub_send_size[0] == P4_CMD_ZONE_COLOR_SIZE, "Should send correct number of bytes");
-  assert(memcmp(stub_send_buffer[0], "c1234123456\n", P4_CMD_ZONE_COLOR_SIZE) == 0, "Should send correct command");
-
-  /////////////////////////////////////////////////////////////////
-  setCurrentTest("zone on");
-  stub_send_init();
-  stub_send_return[0] = P4_CMD_ZONE_ON_SIZE;
-  ret = p4SetZoneOn(&context, zone);
-
-  assert(ret == P4RC_OK, "Should return OK");
-  assert(stub_send_nb_calls == 1, "Should call only one time send");
-  assert(stub_send_size[0] == P4_CMD_ZONE_ON_SIZE, "Should send correct number of bytes");
-  assert(memcmp(stub_send_buffer[0], "O1234\n", P4_CMD_ZONE_ON_SIZE) == 0, "Should send correct command");
-  
-  /////////////////////////////////////////////////////////////////
-  setCurrentTest("zone off");
-  stub_send_init();
-  stub_send_return[0] = P4_CMD_ZONE_OFF_SIZE;
-  ret = p4SetZoneOff(&context, zone);
-
-  assert(ret == P4RC_OK, "Should return OK");
-  assert(stub_send_nb_calls == 1, "Should call only one time send");
-  assert(stub_send_size[0] == P4_CMD_ZONE_OFF_SIZE, "Should send correct number of bytes");
-  assert(memcmp(stub_send_buffer[0], "o1234\n", P4_CMD_ZONE_OFF_SIZE) == 0, "Should send correct command");
-  
-  /////////////////////////////////////////////////////////////////
   setCurrentTest("zone intensity");
   stub_send_init();
   stub_send_return[0] = P4_CMD_ZONE_INTENSITY_SIZE;
@@ -97,17 +64,6 @@ int main(int argc, const char *argv[])
   assert(stub_send_size[0] == P4_CMD_ZONE_INTENSITY_SIZE, "Should send correct number of bytes");
   assert(memcmp(stub_send_buffer[0], "i12344B\n", P4_CMD_ZONE_INTENSITY_SIZE) == 0, "Should send correct command");
   
-  /////////////////////////////////////////////////////////////////
-  setCurrentTest("zone blink");
-  stub_send_init();
-  stub_send_return[0] = P4_CMD_ZONE_BLINK_SIZE;
-  ret = p4SetZoneBlink(&context, zone, 0x1234, 0x5678);
-
-  assert(ret == P4RC_OK, "Should return OK");
-  assert(stub_send_nb_calls == 1, "Should call only one time send");
-  assert(stub_send_size[0] == P4_CMD_ZONE_BLINK_SIZE, "Should send correct number of bytes");
-  assert(memcmp(stub_send_buffer[0], "b123412345678\n", P4_CMD_ZONE_BLINK_SIZE) == 0, "Should send correct command");
-
   ////////////////////////////////////////////////////////////////
   setCurrentTest("ring color");
   stub_send_init();
@@ -119,4 +75,5 @@ int main(int argc, const char *argv[])
   assert(stub_send_size[0] == P4_CMD_SHORT_RING_SIZE, "Should send correct number of bytes");
   assert(memcmp(stub_send_buffer[0], "R12123456\n", P4_CMD_SHORT_RING_SIZE) == 0, "Should send correct command");
 
+  displayStats();
 }

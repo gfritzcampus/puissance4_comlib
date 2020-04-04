@@ -7,12 +7,14 @@
 #define MAX_CALLS 20
 
 #define DECODER(name) \
-static P4SerialContext * cmd_ ## name ## _context[MAX_CALLS] = { 0 };\
+static P4ReceiverContext * cmd_ ## name ## _context[MAX_CALLS] = { 0 };\
 static size_t cmd_ ## name ## _nb_calls = 0;\
+static P4ReturnCode cmd_ ## name ## _return[MAX_CALLS] = { 0 };\
 \
-static void decode_ ## name (P4SerialContext * const context) {\
+static P4ReturnCode decode_ ## name (P4ReceiverContext * const context) {\
   cmd_ ## name ## _context[cmd_ ## name ## _nb_calls] = context;\
   ++cmd_ ## name ## _nb_calls;\
+  return cmd_ ## name ## _return[cmd_ ## name ## _nb_calls - 1];\
 }
 
 DECODER(a);
@@ -21,7 +23,8 @@ DECODER(c);
 
 
 #define INIT_DECODER(name) \
-  memset(cmd_ ## name ## _context, 0, MAX_CALLS);\
+  memset(cmd_ ## name ## _context, 0, MAX_CALLS * sizeof (P4ReceiverContext *));\
+  memset(cmd_ ## name ## _return, 0, MAX_CALLS * sizeof (P4ReturnCode));\
   cmd_ ## name ## _nb_calls = 0;
 
 static void init_cmds() {
@@ -42,6 +45,10 @@ int main(int argc, const char *argv[])
   P4SerialContext context = { 
     .buffer = INIT_BUFFER(buffer, SIZE_OF_BUFFER)
   };
+  P4ReceiverContext rcontext = {
+    .buffer = &context.buffer,
+    .cookie = NULL
+  };
 
   setCurrentTest("Macro INIT_BUFFER");
 
@@ -59,7 +66,7 @@ int main(int argc, const char *argv[])
   context.buffer.isFull = true;
   context.buffer.inError = true;
 
-  ret = p4ReceiverInit(&context);
+  ret = p4ReceiverInit(&rcontext);
 
   assert(ret == P4RC_OK, "Should return OK");
   assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
@@ -79,7 +86,7 @@ int main(int argc, const char *argv[])
   init_cmds();
   context.buffer.head = SIZE_OF_BUFFER - 2;
   context.buffer.tail = SIZE_OF_BUFFER - 2;
-  ret = p4Accumulate(&context, commands, 'a');
+  ret = p4Accumulate(&rcontext, commands, 'a');
 
   assert(ret == P4RC_OK, "Should return OK");
   assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
@@ -90,7 +97,7 @@ int main(int argc, const char *argv[])
   assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
 
   setCurrentTest("Add correctly one char when head pointer point last cell of buffer");
-  ret = p4Accumulate(&context, commands, 'b');
+  ret = p4Accumulate(&rcontext, commands, 'b');
   assert(ret == P4RC_OK, "Should return OK");
   assert(context.buffer.data == buffer, "Ring buffer should point to given buffer");
   assert(context.buffer.size == SIZE_OF_BUFFER, "Ring buffer should have correct size");
@@ -98,5 +105,7 @@ int main(int argc, const char *argv[])
   assert(context.buffer.tail == SIZE_OF_BUFFER - 2, "Tail should still same");
   assert(context.buffer.isFull == false, "Ring buffer should not be mark as full");
   assert(context.buffer.inError == false, "Ring buffer should not be mark as faulted");
+
+  displayStats();
 }
 
